@@ -42,7 +42,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Try to load audio from a source and catch any errors.
     try {
       await _player.setAudioSource(AudioSource.uri(Uri.parse(
-          "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3")));
+          "https://anchor.fm/s/2f0178c/podcast/play/7749243/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-02-27%2F0f3d042ea20b1404423e6317699b9b1e.m4a")));
+      await _player.setSkipSilenceEnabled(true);
     } catch (e) {
       print("Error loading audio source: $e");
     }
