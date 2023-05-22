@@ -12,23 +12,29 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_example/common.dart';
 import 'package:rxdart/rxdart.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final _player = AudioPlayer();
   final _audioSource = LockCachingAudioSource(Uri.parse(
-      "https://dovetail.prxu.org/70/66673fd4-6851-4b90-a762-7c0538c76626/CoryCombs_2021T_VO_Intro.mp3"));
+    // Supports range requests:
+    "https://dovetail.prxu.org/70/66673fd4-6851-4b90-a762-7c0538c76626/CoryCombs_2021T_VO_Intro.mp3",
+    // Doesn't support range requests:
+    //"https://filesamples.com/samples/audio/mp3/sample4.mp3",
+  ));
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    ambiguate(WidgetsBinding.instance)!.addObserver(this);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.black,
     ));
     _init();
@@ -36,13 +42,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> _init() async {
     final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration.speech());
+    await session.configure(const AudioSessionConfiguration.speech());
     _player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
       print('A stream error occurred: $e');
     });
     try {
-      //await _audioSource.clearCache();
+      // Use resolve() if you want to obtain a UriAudioSource pointing directly
+      // to the cache file.
+      // await _player.setAudioSource(await _audioSource.resolve());
       await _player.setAudioSource(_audioSource);
     } catch (e) {
       print("Error loading audio source: $e");
@@ -51,7 +59,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    ambiguate(WidgetsBinding.instance)!.removeObserver(this);
     // Release decoders and buffers back to the operating system making them
     // available for other apps to use.
     _player.dispose();
@@ -108,6 +116,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   );
                 },
               ),
+              ElevatedButton(
+                onPressed: _audioSource.clearCache,
+                child: const Text('Clear cache'),
+              ),
             ],
           ),
         ),
@@ -120,7 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 class ControlButtons extends StatelessWidget {
   final AudioPlayer player;
 
-  ControlButtons(this.player);
+  const ControlButtons(this.player, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +141,7 @@ class ControlButtons extends StatelessWidget {
       children: [
         // Opens volume slider dialog
         IconButton(
-          icon: Icon(Icons.volume_up),
+          icon: const Icon(Icons.volume_up),
           onPressed: () {
             showSliderDialog(
               context: context,
@@ -157,26 +169,26 @@ class ControlButtons extends StatelessWidget {
             if (processingState == ProcessingState.loading ||
                 processingState == ProcessingState.buffering) {
               return Container(
-                margin: EdgeInsets.all(8.0),
+                margin: const EdgeInsets.all(8.0),
                 width: 64.0,
                 height: 64.0,
-                child: CircularProgressIndicator(),
+                child: const CircularProgressIndicator(),
               );
             } else if (playing != true) {
               return IconButton(
-                icon: Icon(Icons.play_arrow),
+                icon: const Icon(Icons.play_arrow),
                 iconSize: 64.0,
                 onPressed: player.play,
               );
             } else if (processingState != ProcessingState.completed) {
               return IconButton(
-                icon: Icon(Icons.pause),
+                icon: const Icon(Icons.pause),
                 iconSize: 64.0,
                 onPressed: player.pause,
               );
             } else {
               return IconButton(
-                icon: Icon(Icons.replay),
+                icon: const Icon(Icons.replay),
                 iconSize: 64.0,
                 onPressed: () => player.seek(Duration.zero),
               );
@@ -188,7 +200,7 @@ class ControlButtons extends StatelessWidget {
           stream: player.speedStream,
           builder: (context, snapshot) => IconButton(
             icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               showSliderDialog(
                 context: context,
